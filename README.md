@@ -42,7 +42,7 @@ cd hr-attrition-dashboard
 pip install -r requirements.txt
 
 3️⃣ Run the Dashboard
-streamlit run app.py
+streamlit run main.py
 
 
 📈 Insights
