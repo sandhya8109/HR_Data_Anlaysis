@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Setting a style for the plots for better aesthetics
+# Set a style for the plots for better aesthetics
 sns.set_style('whitegrid')
 
 # --- Streamlit Dashboard Title ---
@@ -102,7 +102,7 @@ def plot_correlation_heatmap(df, features):
     st.pyplot(fig)
 
 
-# --- Main Application Logic is this ---
+# --- Main Application Logic ---
 def main():
     df_original = load_and_clean_data("WA_Fn-UseC_-HR-Employee-Attrition.csv")
 
@@ -115,15 +115,36 @@ def main():
                               'EnvironmentSatisfaction', 'JobSatisfaction', 'RelationshipSatisfaction',
                               'WorkLifeBalance']
 
-        # Sidebar for user selection
-        st.sidebar.subheader("Interactive Analysis")
-        chart_type = st.sidebar.radio("Select chart type:", ("Categorical", "Numerical"))
+        # --- Display Summary Statistics ---
+        st.header("Summary Statistics")
+        st.write(df_original.describe().T)
+        st.markdown("---")
 
-        if chart_type == "Categorical":
-            st.header("Categorical Feature Analysis")
+        # --- Interactive Sidebar for Filtering ---
+        st.sidebar.subheader("Dashboard Filters")
+        selected_department = st.sidebar.selectbox(
+            "Filter by Department:",
+            options=['All'] + list(df_original['Department'].unique())
+        )
+
+        df = df_original.copy()
+        if selected_department != 'All':
+            df = df[df['Department'] == selected_department]
+            st.write(f"Displaying data for the **{selected_department}** Department.")
+            st.write(f"**Total Employees:** {df.shape[0]}")
+            st.write(f"**Attrition Rate:** {df['Attrition'].mean():.2%}")
+            
+        st.markdown("---")
+
+        # --- Dashboard Layout and Plotting ---
+        st.header("Interactive Analysis")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Categorical Feature Analysis")
             selected_cat_feature = st.selectbox("Choose a categorical feature:", categorical_features)
             # Renaming job roles for better plot readability
-            df_original['JobRole'] = df_original['JobRole'].replace({
+            df['JobRole'] = df['JobRole'].replace({
                 'Sales Representative': 'Sales Rep',
                 'Research Scientist': 'Res Scientist',
                 'Laboratory Technician': 'Lab Tech',
@@ -134,11 +155,12 @@ def main():
                 'Research Director': 'Res Director',
                 'Sales Executive': 'Sales Exec'
             })
-            plot_categorical_attrition(df_original, selected_cat_feature)
-        else:
-            st.header("Numerical Feature Analysis")
+            plot_categorical_attrition(df, selected_cat_feature)
+
+        with col2:
+            st.subheader("Numerical Feature Analysis")
             selected_num_feature = st.selectbox("Choose a numerical feature:", numerical_features)
-            plot_numerical_attrition(df_original, selected_num_feature)
+            plot_numerical_attrition(df, selected_num_feature)
 
         # Plotting the correlation heatmap
         st.markdown("---")
